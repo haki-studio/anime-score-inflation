@@ -271,6 +271,15 @@ def publish(do_write):
     print(f"Edit: https://{admin.store}/admin/articles/{art.get('id')}")
 
 
+def _print_desc_cmds(owner, repo, desc):
+    print(f"    description: {desc}")
+    print(f"    gh:   gh repo edit {owner}/{repo} --description {json.dumps(desc)}")
+    body = json.dumps({"description": desc})
+    print(f'    api:  curl -fsS -X PATCH -H "Authorization: Bearer $GITHUB_TOKEN" \\')
+    print('            -H "Accept: application/vnd.github+json" \\')
+    print(f"            https://api.github.com/repos/{owner}/{repo} -d {json.dumps(body)}")
+
+
 def export_repo(title):
     """Export a self-contained public repo to repos/<slug>/ (toolkit-only)."""
     from contentlab.publish.repo_export import export_article
@@ -283,6 +292,22 @@ def export_repo(title):
                    include_data=True, force=True)
     print(f"\n--- export-repo ---\nWrote standalone public repo -> {dest}")
     print(f"  remote: {github_url}.git")
+
+    # GitHub "About" metadata (description/homepage) - API only, not git/SSH.
+    desc = (getattr(config, "REPO_DESCRIPTION", None) or summary or "").strip()
+    if desc:
+        from contentlab.publish.github import set_repo_metadata, get_token, GitHubError
+        if get_token():
+            try:
+                set_repo_metadata(config.GITHUB_ORG, slug, description=desc,
+                                  homepage=config.ARTICLE_URL)
+                print("  set GitHub repo description via API.")
+            except GitHubError as e:
+                print(f"  [warn] could not set description via API: {e}")
+                _print_desc_cmds(config.GITHUB_ORG, slug, desc)
+        else:
+            print("  GitHub description not set (no GITHUB_TOKEN/GH_TOKEN). Set it with:")
+            _print_desc_cmds(config.GITHUB_ORG, slug, desc)
 
 
 def main():

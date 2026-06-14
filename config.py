@@ -23,3 +23,8 @@ TAGS = None          # skipped for now
 # Public per-article repo (run.py --export-repo). Slug is the post dir name.
 GITHUB_ORG = "haki-studio"
 ARTICLE_URL = None   # set to the published blog URL once live; shown in the repo README
+# One-line GitHub "About" description for the public repo. Falls back to excerpt.md
+# if left as None. Keep it third-person and under ~200 chars.
+REPO_DESCRIPTION = ("Reproducible, show-your-work analysis testing whether AniList anime "
+                    "scores have inflated since 2000 - the average barely moved, only the top "
+                    "of the scale widened. Data, code, and 5 interactive charts.")
